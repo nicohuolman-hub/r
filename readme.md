@@ -16,3 +16,5 @@
     Lataa pelin tiedostot  kansioon esim. ohjelma.py
     Avaa komentokehote tai terminaali siinä kansiossa
     Käynnistä peli komennolla: python ohjelma.py
+# Tekijä
+Nico Huolman
