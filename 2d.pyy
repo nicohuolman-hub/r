@@ -1,0 +1,131 @@
+import pygame
+import random
+import math
+
+pygame.init()
+
+width, height = 1000, 750
+screen = pygame.display.set_mode((width, height))
+pygame.display.set_caption("PALLO PELI")
+
+font = pygame.font.SysFont(None, 40)
+
+MENU = "menu"
+GAME = "game"
+WIN = "win"
+state = MENU
+
+background = pygame.image.load("kuva.png")
+background = pygame.transform.scale(background, (width, height))
+
+x, y = 100, 100
+speed = 2
+
+coin_x = random.randint(120, 880)
+coin_y = random.randint(120, 600)
+score = 0
+
+enemy_x = 800
+enemy_y = 600
+enemy_speed = 2
+
+exit_rect = pygame.Rect(900, 250, 20, 200)
+
+running = True
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+        if event.type == pygame.KEYDOWN:
+            if state == MENU:
+                if event.key == pygame.K_RETURN:
+                    x, y = 100, 100
+                    score = 0
+                    enemy_x, enemy_y = 800, 600
+                    state = GAME
+
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+
+            elif state == WIN:
+                if event.key == pygame.K_RETURN:
+                    state = MENU
+
+    keys = pygame.key.get_pressed()
+
+    if state == MENU:
+        screen.fill((20, 20, 30))
+
+        title = pygame.font.SysFont(None, 80).render("PALLO PELI", True, (0, 200, 255))
+        screen.blit(title, (width//2 - title.get_width()//2, 150))
+
+        start = font.render("ENTER = START", True, (255, 255, 255))
+        screen.blit(start, (width//2 - start.get_width()//2, 350))
+
+        quit_text = font.render("ESC = QUIT", True, (255, 0, 0))
+        screen.blit(quit_text, (width//2 - quit_text.get_width()//2, 420))
+
+    if state == GAME:
+
+        if keys[pygame.K_LEFT]:
+            x -= speed
+        if keys[pygame.K_RIGHT]:
+            x += speed
+        if keys[pygame.K_UP]:
+            y -= speed
+        if keys[pygame.K_DOWN]:
+            y += speed
+
+        screen.blit(background, (0, 0))
+
+        # MAALI näkyy vasta kun 25 kolikkoa
+        if score < 25:
+            pygame.draw.rect(screen, (0, 0, 0), exit_rect)
+
+        # PELAAJA
+        pygame.draw.circle(screen, (0, 0, 255), (int(x), int(y)), 20)
+
+        # KOLIKKO
+        pygame.draw.circle(screen, (255, 255, 0), (coin_x, coin_y), 10)
+
+        # KOLIKON KERÄYS
+        if math.sqrt((x-coin_x)**2 + (y-coin_y)**2) < 30:
+            score += 1
+            coin_x = random.randint(120, 880)
+            coin_y = random.randint(120, 600)
+
+        # VIHOLLINEN JAHTAA
+        dx = x - enemy_x
+        dy = y - enemy_y
+        dist = max((dx**2 + dy**2)**0.5, 0.1)
+
+        enemy_x += enemy_speed * dx / dist
+        enemy_y += enemy_speed * dy / dist
+
+        pygame.draw.circle(screen, (255, 0, 0), (int(enemy_x), int(enemy_y)), 20)
+
+        # VIHOLLINEN TAPPAA
+        if math.sqrt((x - enemy_x)**2 + (y - enemy_y)**2) < 25:
+            state = MENU
+            x, y = 100, 100
+            score = 0
+            enemy_x, enemy_y = 800, 600
+
+        # MAALI
+        player_rect = pygame.Rect(x, y, 20, 20)
+
+        if score >= 25 and player_rect.colliderect(exit_rect):
+            state = MENU
+            x, y = 100, 100
+            score = 0
+            enemy_x, enemy_y = 800, 600
+
+        # PISTEET
+        text = font.render(f"Pisteet: {score} / 25", True, (0, 0, 0))
+        screen.blit(text, (10, 10))
+
+    pygame.display.update()
+
+pygame.quit()
